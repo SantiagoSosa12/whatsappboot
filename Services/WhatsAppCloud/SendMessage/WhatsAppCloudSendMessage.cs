@@ -10,12 +10,13 @@ namespace WhatsappNet.Services.WhatsAppCloud.SendMessage
         {
             var client = new HttpClient();
             var byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(model));
-
+            DotNetEnv.Env.Load();
+            string tokenFacebook = Environment.GetEnvironmentVariable("TOKEN_FACEBOOK");
             using (var content = new ByteArrayContent(byteData))
             {
                 string endpoint = "https://graph.facebook.com";
                 string phoneNumber = "120270344405645";
-                string accessToken = "EAACeXSkdlAsBACW1DOAzl2OzIJZAXP6bFIXYENBimn8KV0k8AoFNmweYY1HLrEXn07N21jZBWD7xXXAkqAhmP0A7G27eUVmxr8mXfc1sYfaKBxG44bej9n718OOnEcT4C5cKqh0rhllbUD0GmT6Nz4hMO5ZATc4yKhXG1WeZCCOFcQTWZBZCJBy3Y3f7Yh0k1K9KPndPAROwZDZD";
+                string accessToken = tokenFacebook;
                 string uri = $"{endpoint}/v16.0/{phoneNumber}/messages";
 
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");

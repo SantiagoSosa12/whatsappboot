@@ -15,10 +15,18 @@ namespace WhatsappNet.Controllers
         private readonly InterfaceWhatsAppCloudSendMessage _whatsAppCloudMessage;
         private readonly InterfaceUtil _InterfaceUtil;
 
+        private string _phoneNumberToSend;
+
         public WhatsAppController(InterfaceWhatsAppCloudSendMessage whatsAppCloudMessage, InterfaceUtil util)
         {
             _whatsAppCloudMessage = whatsAppCloudMessage;
             _InterfaceUtil = util;
+            this.getPhoneNumber();
+        }
+
+        private void getPhoneNumber() {
+            DotNetEnv.Env.Load();
+            this._phoneNumberToSend = Environment.GetEnvironmentVariable("PHONE_NUMBER");
         }
 
         [HttpGet("test")]
@@ -28,7 +36,7 @@ namespace WhatsappNet.Controllers
             {
                 messaging_product = "whatsapp",
                 recipient_type = "individual",
-                to = "573223942583",
+                to = this._phoneNumberToSend,
                 type = "text",
                 text = new
                 {
@@ -73,28 +81,28 @@ namespace WhatsappNet.Controllers
                     switch(userText.ToUpper())
                     {
                         case "TEXT":
-                            objectMessage = _InterfaceUtil.TextMessage("Example massage" , "573223942583");
+                            objectMessage = _InterfaceUtil.TextMessage("Example massage" , this._phoneNumberToSend);
                             break;
                         case "IMAGE":
-                            objectMessage = _InterfaceUtil.imageMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/image_whatsapp.png", "573223942583");
+                            objectMessage = _InterfaceUtil.imageMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/image_whatsapp.png", this._phoneNumberToSend);
                             break;
                         case "VIDEO":
-                            objectMessage = _InterfaceUtil.videoMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/video_whatsapp.mp4", "573223942583");
+                            objectMessage = _InterfaceUtil.videoMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/video_whatsapp.mp4", this._phoneNumberToSend);
                             break;
                         case "AUDIO":
-                            objectMessage = _InterfaceUtil.audioMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/audio_whatsapp.mp3", "573223942583");
+                            objectMessage = _InterfaceUtil.audioMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/audio_whatsapp.mp3", this._phoneNumberToSend);
                             break;
                         case "DOCUMENT":
-                            objectMessage = _InterfaceUtil.documentMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/document_whatsapp.pdf", "573223942583");
+                            objectMessage = _InterfaceUtil.documentMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/document_whatsapp.pdf", this._phoneNumberToSend);
                             break;
                         case "LOCATION":
-                            objectMessage = _InterfaceUtil.locationMessage("573223942583");
+                            objectMessage = _InterfaceUtil.locationMessage(this._phoneNumberToSend);
                             break;
                         case "BUTTON":
-                            objectMessage = _InterfaceUtil.buttonMessage("573223942583");
+                            objectMessage = _InterfaceUtil.buttonMessage(this._phoneNumberToSend);
                             break;
                         default:
-                            objectMessage = _InterfaceUtil.TextMessage("Sorry, I am not undestarnd", "573223942583");
+                            objectMessage = _InterfaceUtil.TextMessage("Sorry, I am not undestarnd", this._phoneNumberToSend);
                             break;
                     }
 
