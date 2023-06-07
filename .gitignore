@@ -6,6 +6,9 @@
 #Enviroment variables
 .env
 
+#Files prod
+/out
+
 # User-specific files
 *.rsuser
 *.suo
