@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using WhatsappNet.Models.WhatsAppModel;
 using WhatsappNet.Services.WhatsAppCloud.SendMessage;
+using WhatsappNet.Services.whatsonAi.ibmWatson;
 using WhatsappNet.Util;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WhatsappNet.Controllers
 {
@@ -14,8 +14,7 @@ namespace WhatsappNet.Controllers
 
         private readonly InterfaceWhatsAppCloudSendMessage _whatsAppCloudMessage;
         private readonly InterfaceUtil _InterfaceUtil;
-
-        private string _phoneNumberToSend;
+        private string? _phoneNumberToSend;
 
         public WhatsAppController(InterfaceWhatsAppCloudSendMessage whatsAppCloudMessage, InterfaceUtil util)
         {
@@ -50,13 +49,13 @@ namespace WhatsappNet.Controllers
         }
 
 
-        [HttpGet("getToken")]
+        [HttpGet]
         public IActionResult VerifyToken()
         {
-            string accesToken = "DFGHJABAVC&VTSC";
+            DotNetEnv.Env.Load();
+            string? accesToken = Environment.GetEnvironmentVariable("OWN_TOKEN");
             var token = Request.Query["hub.verify_token"].ToString();
             var challenge = Request.Query["hub.challenge"].ToString();
-
             if (challenge != null && token != null && token == accesToken)
             {
                 return Ok(challenge);
@@ -70,44 +69,16 @@ namespace WhatsappNet.Controllers
         public async Task<IActionResult> RecivedMessage([FromBody] WhatsAppCloudModel body)
         {
             try {
-                var Message = body.Entry[0]?.Changes[0]?.Value?.Messages[0];
+                var Message = body.Entry[0]?.Changes?[0]?.Value?.Messages?[0];
                 if (Message != null)
                 {
                     var userNumber = Message.From;
-                    var userText = GetUserText(Message);
-
-                    object objectMessage;
-
-                    switch(userText.ToUpper())
-                    {
-                        case "TEXT":
-                            objectMessage = _InterfaceUtil.TextMessage("Example massage" , this._phoneNumberToSend);
-                            break;
-                        case "IMAGE":
-                            objectMessage = _InterfaceUtil.imageMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/image_whatsapp.png", this._phoneNumberToSend);
-                            break;
-                        case "VIDEO":
-                            objectMessage = _InterfaceUtil.videoMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/video_whatsapp.mp4", this._phoneNumberToSend);
-                            break;
-                        case "AUDIO":
-                            objectMessage = _InterfaceUtil.audioMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/audio_whatsapp.mp3", this._phoneNumberToSend);
-                            break;
-                        case "DOCUMENT":
-                            objectMessage = _InterfaceUtil.documentMessage("https://biostoragecloud.blob.core.windows.net/resource-udemy-whatsapp-node/document_whatsapp.pdf", this._phoneNumberToSend);
-                            break;
-                        case "LOCATION":
-                            objectMessage = _InterfaceUtil.locationMessage(this._phoneNumberToSend);
-                            break;
-                        case "BUTTON":
-                            objectMessage = _InterfaceUtil.buttonMessage(this._phoneNumberToSend);
-                            break;
-                        default:
-                            objectMessage = _InterfaceUtil.TextMessage("Sorry, I am not undestarnd", this._phoneNumberToSend);
-                            break;
-                    }
-
-                    await _whatsAppCloudMessage.Execute(objectMessage);
-
+                    var userText = GetUserText(Message).ToUpper();
+                    Console.WriteLine("User message: " + userText);
+                    List<object> listObjectMessage = new List<object>();
+                    
+                    this.usingWatson(listObjectMessage , userText);
+                    this.sendAllMessages(listObjectMessage);
                 }
                 return Ok("EVENT_RECEIVED");
             }catch(Exception ex)
@@ -116,13 +87,59 @@ namespace WhatsappNet.Controllers
             }
         }
 
-        private string GetUserText(Message message)
+        private async void sendAllMessages(List<object> messageList) {
+            foreach (var item in messageList)
+            {
+                await _whatsAppCloudMessage.Execute(item);
+            }
+        }
+
+        private void usingWatson(List<object> messageList, string userMessage) {
+            OwnOutput? responseWatson = ServiceWatson.GetInstance().chatWithWatson(userMessage);
+
+            OwnGeneric generalMessage = responseWatson.generic[0];
+
+            var responseToUser = _InterfaceUtil.TextMessage(generalMessage.text , this._phoneNumberToSend);
+            messageList.Add(responseToUser);
+
+            List<OwnOptions> optionsMessages = responseWatson.generic[1].options;
+            
+            if (optionsMessages.Count > 0)
+            {
+                List<String> messages = new List<string>();
+                foreach (OwnOptions option in optionsMessages)
+                {
+                    messages.Add(option.label);//Extract each label message from list optiones
+                }
+                sendPartialMessages(messages , messageList);       
+            }
+        }
+
+        private void sendPartialMessages(List<String> messages, List<object> messageList) {
+            List<String> partialMessages = new List<String>();
+            String messageToSelectButton = "Tenemos estas opciones:";
+            for (int i = 0; i < messages.Count; i++)
+            {
+                partialMessages.Add(messages[i]);
+                if((i + 1) % 4 == 0 ) {
+                    messageToSelectButton = "O estas otras:";
+                }
+                if((i + 1) % 2 == 0) {
+                    var responseUser2 = _InterfaceUtil.buttonMessage(partialMessages , messageToSelectButton ,  this._phoneNumberToSend);
+                    Console.WriteLine(" partia Messages tiene los siguientes elementos: " + partialMessages.Count() +  " Complete response: " + JsonConvert.SerializeObject(responseUser2));
+                    messageList.Add(responseUser2);
+                    partialMessages.Clear();
+                }   
+            }
+        } 
+
+        private string? GetUserText(Message message)
         {
-            string typeMessage = message.Type;
-            if(typeMessage.ToUpper() == "TEXT")
+            string? typeMessage = message.Type;
+            if(typeMessage?.ToUpper() == "TEXT")
             {
                 return message.Text.Body;
-            }else if (typeMessage.ToUpper() == "INTERACTIVE")
+            }else if (typeMessage?.ToUpper() == "INTERACTIVE")
             {
                 string interactiveType = message.Interactive.Type;
                 if (interactiveType.ToUpper() == "LIST_REPLY")

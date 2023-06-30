@@ -95,7 +95,7 @@
             };
         }
 
-        public object buttonMessage(string number)
+        public object buttonMessage(List<string> listMessages, String textSelectOptions ,  String number)
         {
             return new
             {
@@ -108,34 +108,32 @@
                     type = "button",
                     body = new
                     {
-                        text = "Select an option"
+                        text = textSelectOptions
                     },
                     action = new
                     {
-                        buttons = new List<object>
-                        {
-                            new
-                            {
-                                type = "reply",
-                                reply = new
-                                {
-                                    id = "01",
-                                    title = "Buy"
-                                }
-                            },
-                            new
-                            {
-                                type = "reply",
-                                reply = new
-                                {
-                                    id = "02",
-                                    title = "Sell"
-                                }
-                            }
-                        }
+                        buttons = toButtons(listMessages)
+                        
                     }
                 }
             };
+        }
+
+        public List<object> toButtons(List<string> textList) {
+            List<object> buttons = new List<object>();
+            for (int i = 0; i < textList.Count; i++)
+            {
+                buttons.Add(new
+                            {
+                                type = "reply",
+                                reply = new
+                                {
+                                    id = "0" + i,
+                                    title = "" + textList[i]
+                                }
+                            });
+            }            
+            return buttons;
         }
 
     }

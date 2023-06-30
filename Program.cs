@@ -1,4 +1,5 @@
 using WhatsappNet.Services.WhatsAppCloud.SendMessage;
+using WhatsappNet.Services.whatsonAi.ibmWatson;
 using WhatsappNet.Util;
 
 var builder = WebApplication.CreateBuilder(args);
