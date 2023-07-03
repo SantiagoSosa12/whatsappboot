@@ -125,9 +125,9 @@ namespace WhatsappNet.Controllers
                     messageToSelectButton = "O estas otras:";
                 }
                 if((i + 1) % 2 == 0) {
-                    var responseUser2 = _InterfaceUtil.buttonMessage(partialMessages , messageToSelectButton ,  this._phoneNumberToSend);
-                    Console.WriteLine(" partia Messages tiene los siguientes elementos: " + partialMessages.Count() +  " Complete response: " + JsonConvert.SerializeObject(responseUser2));
-                    messageList.Add(responseUser2);
+                    var responseUser = _InterfaceUtil.buttonMessage(partialMessages , messageToSelectButton ,  this._phoneNumberToSend);
+                    Console.WriteLine(" partia Messages tiene los siguientes elementos: " + partialMessages.Count() +  " Complete response: " + JsonConvert.SerializeObject(responseUser));
+                    messageList.Add(responseUser);
                     partialMessages.Clear();
                 }   
             }

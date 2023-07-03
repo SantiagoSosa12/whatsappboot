@@ -128,7 +128,7 @@
                                 type = "reply",
                                 reply = new
                                 {
-                                    id = "0" + i,
+                                    id = "0" + (i + 1),
                                     title = "" + textList[i]
                                 }
                             });
