@@ -20,5 +20,15 @@ To Run Container
 ```
 docker run -d -p 5024:5024 --name whatsNetCont --env-file ./.env whatsappnetimg
 ```
-
+---------------------------------------
+### To push image
+```
+docker login
+```
+```
+docker tag whatsappnetimg YOURUSERNAME/whatsappnetimg
+```
+```
+docker push YOURUSERNAME/whatsappnetimg
+```
 
