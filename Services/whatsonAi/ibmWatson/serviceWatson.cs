@@ -62,13 +62,11 @@ namespace WhatsappNet.Services.whatsonAi.ibmWatson
                 Error = (obj, args) =>
                 {
                     var context = args.ErrorContext;
-                    Console.WriteLine("obj: " + obj + "args: " + args);
                     context.Handled = true;
                 }
             };
 
             OutputWatson json = JsonConvert.DeserializeObject<OutputWatson>(result.Response, settings);
-            Console.WriteLine(result.Response);
             return json.output;
         }
     }

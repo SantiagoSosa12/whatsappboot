@@ -74,7 +74,7 @@ namespace WhatsappNet.Controllers
                 {
                     var userNumber = Message.From;
                     var userText = GetUserText(Message).ToUpper();
-                    Console.WriteLine("User message: " + userText);
+                    
                     List<object> listObjectMessage = new List<object>();
                     
                     this.usingWatson(listObjectMessage , userText);
@@ -126,7 +126,6 @@ namespace WhatsappNet.Controllers
                 }
                 if((i + 1) % 2 == 0) {
                     var responseUser = _InterfaceUtil.buttonMessage(partialMessages , messageToSelectButton ,  this._phoneNumberToSend);
-                    Console.WriteLine(" partia Messages tiene los siguientes elementos: " + partialMessages.Count() +  " Complete response: " + JsonConvert.SerializeObject(responseUser));
                     messageList.Add(responseUser);
                     partialMessages.Clear();
                 }   
